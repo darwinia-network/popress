@@ -1,45 +1,49 @@
-import "./App.css";
-import { ApiPromise, WsProvider } from "@polkadot/api";
-import { useState, useEffect } from "react";
-import { typesBundleForPolkadotApps } from "@darwinia/types/mix";
-import { web3FromAddress, web3Enable } from "@polkadot/extension-dapp";
+import { typesBundleForPolkadotApps } from '@darwinia/types/mix';
+import { ApiPromise, WsProvider } from '@polkadot/api';
+import { web3Accounts, web3Enable, web3FromAddress } from '@polkadot/extension-dapp';
+import { useEffect, useState } from 'react';
+import './App.css';
 
-web3Enable("polkadot-js/apps");
-
-const api = new ApiPromise({
-  provider: new WsProvider("wss://pangolin-rpc.darwinia.network"),
-  typesBundle: typesBundleForPolkadotApps,
-});
-
-const signer = "5FA7CzAgT5fNDFRdb4UWSZX3b9HJsPuR7F5BF4YotSpKxAA2";
+const signer = '5GNjaEkQEz2KJMb95dkC17HXJj8wJNDTjtbRoDNp4LSCMTh8';
 
 function App() {
-  const [recipient, setRecipient] = useState("");
-  const [amount, setAmount] = useState("");
-  const [balance, setBalance] = useState("");
-  const [status, setStatus] = useState("Pending");
-  const [hash, setHash] = useState("");
+  const [recipient, setRecipient] = useState('');
+  const [amount, setAmount] = useState('');
+  const [balance, setBalance] = useState('');
+  const [status, setStatus] = useState('Pending');
+  const [hash, setHash] = useState('');
+  const [api, setApi] = useState();
 
   useEffect(() => {
     (async () => {
+      const api = new ApiPromise({
+        provider: new WsProvider('wss://pangolin-rpc.darwinia.network'),
+        typesBundle: typesBundleForPolkadotApps,
+      });
+
       await api.isReady;
+
+      const res = await web3Enable('polkadot-js/apps');
+      const accounts = await web3Accounts();
+
+      console.log('%c [ res ]-27', 'font-size:13px; background:pink; color:#bf2c9f;', res, accounts);
+
       const balance = await api.rpc.balances.usableBalance(0, signer);
 
       setBalance(balance.usableBalance.toString());
+      setApi(api);
     })();
   }, []);
 
   return (
     <div className="App">
-      <div className="indicator">
-        {status}
-      </div>
+      <div className="indicator">{status}</div>
       <form className="form">
-        <label>Sender</label>
+        <label>Recipient</label>
         <input
           type="text"
-          placeholder="Type the sender account"
-          onChange={event => {
+          placeholder="Type the recipient account"
+          onChange={(event) => {
             const value = event.target.value;
 
             setRecipient(value);
@@ -51,7 +55,7 @@ function App() {
         <input
           type="number"
           placeholder="Type RING amount"
-          onChange={event => {
+          onChange={(event) => {
             const value = event.target.value;
 
             setAmount(value);
@@ -61,13 +65,13 @@ function App() {
 
       <button
         onClick={async () => {
-          const wei = amount + "0".padEnd(9, "0");
+          const wei = amount + '0'.padEnd(9, '0');
           const extrinsic = api.tx.balances.transfer(recipient, wei);
           const injector = await web3FromAddress(signer);
 
           api.setSigner(injector.signer);
 
-          extrinsic.signAndSend(signer, result => {
+          extrinsic.signAndSend(signer, (result) => {
             if (!result || !result.status) {
               return;
             }
@@ -75,29 +79,29 @@ function App() {
             const { error, finalized } = result.status.toJSON();
 
             if (result.status.isBroadcast) {
-              setStatus("broadcast");
+              setStatus('broadcast');
             }
 
             if (result.status.isReady) {
-              setStatus("queued");
+              setStatus('queued');
             }
 
             if (result.status.isInBlock) {
-              setStatus("inblock");
+              setStatus('inblock');
             }
 
             if (result.status.isFinalized) {
-              setStatus("finalized");
+              setStatus('finalized');
               setHash(finalized);
 
               setTimeout(() => {
-                setStatus("pending");
+                setStatus('pending');
               }, 3000);
             }
 
             if (result.isError) {
-              setStatus("error");
-              console.error("------>", error);
+              setStatus('error');
+              console.error('------>', error);
             }
           });
         }}
