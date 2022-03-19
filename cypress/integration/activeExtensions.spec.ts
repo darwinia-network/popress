@@ -6,12 +6,15 @@ describe("Active polkadot extensions", () => {
   });
 
   beforeEach(() => {
+    cy.wait(5 * 1000).then(() => { 
+      cy.log('injected', window['injectedWeb3']);
+      console.log("🚀 ~ file: activeExtensions.spec.ts ~ line 11 ~ cy.wait ~ cy", window['injectedWeb3']);
+    });
     cy.visit(Cypress.config().baseUrl);
   });
 
   it('authorize extension', () => { 
     cy.authorizePolkadot(60 * 1000);
-    cy.wait(60 * 1000).then(() => { });
   });
 
 });

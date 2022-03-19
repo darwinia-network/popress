@@ -22,6 +22,20 @@ export const init = async () => {
   return browser.isConnected();
 };
 
+const getExtensionId = async (browser: Browser) => {
+  const targets = await browser.targets();
+  let url: string;
+
+  for (let target of targets) {
+    if (target.type() === 'background_page') {
+      url = target.url();
+      break;
+    }
+  }
+
+  return url.split('/')[2];
+};
+
 export const assignWindows = async () => {
   const pages = await browser.pages();
 
@@ -29,8 +43,9 @@ export const assignWindows = async () => {
 
   const page = await browser.newPage();
 
-  // TODO: url below is hardcoded
-  await page.goto('chrome-extension://ldenbinemdlbjlbinmegfgakfgghadnk/index.html#/');
+  const extensionId = await getExtensionId(browser);
+
+  await page.goto(`chrome-extension://${extensionId}/index.html#/`);
 
   polkadotPage = page;
 
@@ -45,27 +60,14 @@ export const switchToCypressWindow = async () => {
 export const switchToPolkadotNotification = async () => {
   await polkadotPage.waitForTimeout(2000);
 
-  const targets = await browser.targets();
-
   const pages = await browser.pages();
-  console.log("🚀 ~ file: puppeteer.ts ~ line 51 ~ switchToPolkadotNotification ~ pages", pages)
 
-  for (const target of targets) {
-    if (target.type() === 'background_page') {
-      // const browser = target.browser();
-      // const pages = await browser.pages();
-
-      const backgroundPage = await target.page();
-
-      // console.log('---background page--->', backgroundPage);
-
-      // console.log('------->', pages, pages[0] === backgroundPage);
-
+  for (const page of pages) {
+    if (page.url().includes('notification')) {
       switchToPolkadotNotificationRetries = 0;
 
-      await backgroundPage.bringToFront();
-
-      return backgroundPage;
+      await page.bringToFront();
+      return page;
     }
   }
 
