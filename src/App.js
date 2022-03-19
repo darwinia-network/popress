@@ -1,10 +1,12 @@
 import { typesBundleForPolkadotApps } from '@darwinia/types/mix';
 import { ApiPromise, WsProvider } from '@polkadot/api';
-import { web3Accounts, web3Enable, web3FromAddress } from '@polkadot/extension-dapp';
+import { web3Accounts, web3Enable, web3FromAddress, isWeb3Injected } from '@polkadot/extension-dapp';
 import { useEffect, useState } from 'react';
 import './App.css';
 
 const signer = '5GNjaEkQEz2KJMb95dkC17HXJj8wJNDTjtbRoDNp4LSCMTh8';
+
+console.log("🚀 ~ file: App.js ~ line 4 ~ isWeb3Injected", isWeb3Injected);
 
 function App() {
   const [recipient, setRecipient] = useState('');

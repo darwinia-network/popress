@@ -1,7 +1,7 @@
 import axios from 'axios';
 import type { Browser, Page } from 'puppeteer';
 
-const puppeteer = require('puppeteer-core');
+const puppeteer = require('puppeteer');
 
 export let browser: Browser;
 export let mainPage: Page;
@@ -11,6 +11,7 @@ let switchToPolkadotNotificationRetries = 0;
 export const init = async () => {
   const res = await axios.get('http://localhost:9222/json/version');
   const debuggerDetailsConfig = res.data;
+  console.log("🚀 ~ file: puppeteer.ts ~ line 14 ~ init ~ debuggerDetailsConfig", debuggerDetailsConfig)
   const webSocketDebuggerUrl = debuggerDetailsConfig.webSocketDebuggerUrl;
 
   browser = await puppeteer.connect({
@@ -19,7 +20,10 @@ export const init = async () => {
     defaultViewport: null,
   });
 
-  return browser.isConnected();
+  const isConnected = browser.isConnected();
+  console.log("🚀 ~ file: puppeteer.ts ~ line 24 ~ init ~ isConnected", isConnected)
+
+  return isConnected;
 };
 
 const getExtensionId = async (browser: Browser) => {
@@ -61,6 +65,7 @@ export const switchToPolkadotNotification = async () => {
   await polkadotPage.waitForTimeout(2000);
 
   const pages = await browser.pages();
+  console.log("🚀 ~ file: puppeteer.ts ~ line 67 ~ switchToPolkadotNotification ~ pages", pages.map(item => item.url()))
 
   for (const page of pages) {
     if (page.url().includes('notification')) {

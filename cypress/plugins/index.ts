@@ -27,7 +27,8 @@ module.exports = (on, config) => {
 
     launchOptions.args.push(
       `--disable-extensions-except=${pathToExtension}`,
-      `--load-extension=${pathToExtension}`
+      `--load-extension=${pathToExtension}`,
+      '--auto-open-devtools-for-tabs'
     );
 
     launchOptions.extensions.push(pathToExtension);
