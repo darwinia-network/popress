@@ -13,6 +13,6 @@ declare namespace Cypress {
     /**
      * authorize polkadot extensions
      */
-     authorizePolkadot(timeout?: number): Chainable<Subject>;
+    authorizePolkadot(timeout?: number): Chainable<Subject>;
   }
 }

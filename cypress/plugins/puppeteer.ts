@@ -1,4 +1,6 @@
 import axios from 'axios';
+import { enable } from '@polkadot/extension-base/page';
+import { injectExtension } from '@polkadot/extension-inject';
 import type { Browser, Page } from 'puppeteer';
 
 const puppeteer = require('puppeteer');
@@ -11,7 +13,6 @@ let switchToPolkadotNotificationRetries = 0;
 export const init = async () => {
   const res = await axios.get('http://localhost:9222/json/version');
   const debuggerDetailsConfig = res.data;
-  console.log("🚀 ~ file: puppeteer.ts ~ line 14 ~ init ~ debuggerDetailsConfig", debuggerDetailsConfig)
   const webSocketDebuggerUrl = debuggerDetailsConfig.webSocketDebuggerUrl;
 
   browser = await puppeteer.connect({
@@ -20,14 +21,11 @@ export const init = async () => {
     defaultViewport: null,
   });
 
-  const isConnected = browser.isConnected();
-  console.log("🚀 ~ file: puppeteer.ts ~ line 24 ~ init ~ isConnected", isConnected)
-
-  return isConnected;
+  return browser.isConnected();
 };
 
-const getExtensionId = async (browser: Browser) => {
-  const targets = await browser.targets();
+const getExtensionId = (browser: Browser) => {
+  const targets = browser.targets();
   let url: string;
 
   for (let target of targets) {
@@ -45,11 +43,13 @@ export const assignWindows = async () => {
 
   mainPage = pages[0];
 
-  const page = await browser.newPage();
+  const ctx = mainPage.browserContext();
+  const page = await ctx.newPage();
 
-  const extensionId = await getExtensionId(browser);
+  const extensionId = getExtensionId(browser);
+  const extUrl = `chrome-extension://${extensionId}/index.html#/`;
 
-  await page.goto(`chrome-extension://${extensionId}/index.html#/`);
+  await page.goto(extUrl);
 
   polkadotPage = page;
 
@@ -62,10 +62,28 @@ export const switchToCypressWindow = async () => {
 };
 
 export const switchToPolkadotNotification = async () => {
-  await polkadotPage.waitForTimeout(2000);
-
   const pages = await browser.pages();
-  console.log("🚀 ~ file: puppeteer.ts ~ line 67 ~ switchToPolkadotNotification ~ pages", pages.map(item => item.url()))
+
+  const frames = mainPage.frames();
+  const frame = frames.find((item) => item.url() === 'http://localhost:3000/');
+  const ele = await frame.$('#root');
+
+  await ele.evaluate(() => {
+    console.log('🚀 ~ file: polkadot.ts ~ line 35 ~ frame.evaluate ~ window.location.href', window.location.href);
+
+    window['injectedWeb3'] = {
+      'polkadot-js': {
+        version: '0.42.7',
+        enable: function(origin) {
+          enable(origin);
+        }
+      },
+    };
+
+    // injectExtension(enable, { name: 'polkadot-js/apps', version: '0.42.7' });
+
+    return true;
+  });
 
   for (const page of pages) {
     if (page.url().includes('notification')) {

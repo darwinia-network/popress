@@ -1,12 +1,12 @@
 import { typesBundleForPolkadotApps } from '@darwinia/types/mix';
+import { enable } from '@polkadot/extension-base/page';
+import { injectExtension } from '@polkadot/extension-inject';
 import { ApiPromise, WsProvider } from '@polkadot/api';
 import { web3Accounts, web3Enable, web3FromAddress, isWeb3Injected } from '@polkadot/extension-dapp';
 import { useEffect, useState } from 'react';
 import './App.css';
 
 const signer = '5GNjaEkQEz2KJMb95dkC17HXJj8wJNDTjtbRoDNp4LSCMTh8';
-
-console.log("🚀 ~ file: App.js ~ line 4 ~ isWeb3Injected", isWeb3Injected);
 
 function App() {
   const [recipient, setRecipient] = useState('');
@@ -17,6 +17,8 @@ function App() {
   const [api, setApi] = useState();
 
   useEffect(() => {
+    console.log('🚀 ~ file: App.js ~ line 6 ~ isWeb3Injected', isWeb3Injected);
+
     (async () => {
       const api = new ApiPromise({
         provider: new WsProvider('wss://pangolin-rpc.darwinia.network'),
@@ -112,6 +114,21 @@ function App() {
       </button>
 
       <p className="hash">Transaction Hash: {hash}</p>
+
+      <button
+        onClick={() => {
+          injectExtension(enable, { name: 'polkadot-js', version: '0.42.7' });
+
+          web3Enable('polkadot-js/apps').then((res) => {
+            console.log('🚀 ~ file: App.js ~ line 123 ~ onClick={ ~ res', res);
+            web3Accounts().then((accounts) => {
+              console.log('🚀 ~ file: App.js ~ line 123 ~ web3Accounts ~ accounts', accounts);
+            });
+          });
+        }}
+      >
+        inject
+      </button>
     </div>
   );
 }
